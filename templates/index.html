@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Navigator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="app-sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2005/Atom">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4285F4"/>
+                                <stop offset="1" stop-color="#34A853"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h2>BQ Navigator</h2>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="section-title">Overview</h3>
+                <div class="stats-grid">
+                    <div class="stat-card" data-filter="All">
+                        <span class="stat-num" id="stat-total">-</span>
+                        <span class="stat-label">Total Notes</span>
+                    </div>
+                    <div class="stat-card" data-filter="Feature">
+                        <span class="stat-num" id="stat-features">-</span>
+                        <span class="stat-label">Features</span>
+                    </div>
+                    <div class="stat-card" data-filter="Issue">
+                        <span class="stat-num" id="stat-issues">-</span>
+                        <span class="stat-label">Issues</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="section-title">Categories</h3>
+                <nav class="category-filters">
+                    <button class="filter-btn active" data-type="all">
+                        <span class="dot all"></span> All Updates
+                        <span class="badge" id="badge-all">0</span>
+                    </button>
+                    <button class="filter-btn" data-type="feature">
+                        <span class="dot feature"></span> Features
+                        <span class="badge" id="badge-feature">0</span>
+                    </button>
+                    <button class="filter-btn" data-type="changed">
+                        <span class="dot changed"></span> Changes
+                        <span class="badge" id="badge-changed">0</span>
+                    </button>
+                    <button class="filter-btn" data-type="resolved">
+                        <span class="dot resolved"></span> Resolved Issues
+                        <span class="badge" id="badge-resolved">0</span>
+                    </button>
+                    <button class="filter-btn" data-type="issue">
+                        <span class="dot issue"></span> Known Issues
+                        <span class="badge" id="badge-issue">0</span>
+                    </button>
+                    <button class="filter-btn" data-type="deprecation">
+                        <span class="dot deprecation"></span> Deprecations
+                        <span class="badge" id="badge-deprecation">0</span>
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p>Data source: Google Cloud</p>
+                <a href="https://docs.cloud.google.com/feeds/bigquery-release-notes.xml" target="_blank" class="source-link">
+                    Feed RSS/Atom XML
+                    <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- App Header -->
+            <header class="app-header">
+                <div class="header-search">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="search-input" placeholder="Search release notes by keywords...">
+                        <button id="clear-search" class="clear-btn" style="display:none;">&times;</button>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="last-updated-text" id="last-updated">Last updated: Loading...</div>
+                    <button id="refresh-btn" class="btn btn-primary" title="Sync with BigQuery RSS Feed">
+                        <svg class="refresh-spinner-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Sync Feed</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Feed -->
+            <div class="feed-layout">
+                <div class="feed-section">
+                    <div class="feed-header-meta">
+                        <h1 class="feed-title">BigQuery Release Notes</h1>
+                        <span class="feed-count-badge" id="results-count">Showing - updates</span>
+                    </div>
+
+                    <!-- Filter state pill bar -->
+                    <div class="active-filters-bar" id="active-filters" style="display:none;">
+                        <span class="filter-pill-label">Active filters:</span>
+                        <div id="filter-pills-container"></div>
+                        <button class="clear-all-filters-btn" id="clear-all-filters">Clear All</button>
+                    </div>
+
+                    <!-- Release Notes Feed List -->
+                    <div class="release-feed" id="release-feed-list">
+                        <!-- Skeleton loading cards -->
+                        <div class="skeleton-card">
+                            <div class="skeleton-header">
+                                <div class="skeleton-badge"></div>
+                                <div class="skeleton-date"></div>
+                            </div>
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                        <div class="skeleton-card">
+                            <div class="skeleton-header">
+                                <div class="skeleton-badge"></div>
+                                <div class="skeleton-date"></div>
+                            </div>
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                            <div class="skeleton-footer"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar - Mock X Feed -->
+                <section class="x-feed-sidebar">
+                    <div class="x-sidebar-header">
+                        <div class="x-header-title">
+                            <svg class="x-logo" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                            <h3>Mock X Feed</h3>
+                        </div>
+                        <span class="x-hub-badge">Live Simulator</span>
+                    </div>
+                    
+                    <div class="x-sidebar-body">
+                        <p class="x-intro">Posts you share inside this app appear here in real-time. Share release notes to build your feed!</p>
+                        
+                        <div class="x-timeline" id="x-timeline-posts">
+                            <!-- Empty Timeline State -->
+                            <div class="x-empty-state" id="x-empty-state">
+                                <div class="x-empty-icon">
+                                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h4>No posts shared yet</h4>
+                                <p>Select a release note and click "Tweet" to simulate publishing an update to this timeline.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Glassmorphic Tweet Composer Modal -->
+    <div class="modal-overlay" id="tweet-modal" style="display:none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" class="modal-x-icon">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    <h2>Share Update</h2>
+                </div>
+                <button class="modal-close-btn" id="close-modal-btn">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="source-ref-card">
+                    <div class="ref-header">
+                        <span class="ref-badge" id="modal-ref-type">Feature</span>
+                        <span class="ref-date" id="modal-ref-date">June 15, 2026</span>
+                    </div>
+                    <p class="ref-summary" id="modal-ref-summary"></p>
+                </div>
+                
+                <div class="tweet-composer-area">
+                    <div class="profile-pic-mock">BQ</div>
+                    <div class="composer-main">
+                        <span class="composer-handle">@BigQueryNavigator</span>
+                        <textarea id="tweet-textarea" placeholder="What's happening in BigQuery?"></textarea>
+                        
+                        <div class="tweet-suggestions">
+                            <span class="suggest-label">Template presets:</span>
+                            <div class="suggest-pills">
+                                <button class="suggest-pill" data-template="bullet">📢 Feature Alert</button>
+                                <button class="suggest-pill" data-template="simple">📝 Simple Summary</button>
+                                <button class="suggest-pill" data-template="technical">💡 Deep Dive</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="composer-stats">
+                    <!-- Circular character count indicator -->
+                    <div class="radial-progress-container">
+                        <svg class="radial-progress" viewBox="0 0 36 36" width="30" height="30">
+                            <path class="radial-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                            <path class="radial-bar" id="char-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        </svg>
+                        <span class="char-count" id="char-count-text">280</span>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="modal-cancel-btn">Cancel</button>
+                    <button class="btn btn-dark-outline" id="post-mock-btn">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        Simulate Post
+                    </button>
+                    <button class="btn btn-accent" id="tweet-real-btn">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        Post to X
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Custom Javascript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

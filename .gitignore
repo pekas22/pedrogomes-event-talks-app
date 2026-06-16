@@ -1,0 +1,27 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python caching
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local data cache
+release_notes_cache.json
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor-specific directories
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
