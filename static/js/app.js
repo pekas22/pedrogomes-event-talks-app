@@ -14,7 +14,8 @@ const ICONS = {
     shareArrow: `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>`,
     comment: `<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
     retweet: `<svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
-    like: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+    like: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+    copy: `<svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`
 };
 
 // Templates for pre-filled tweets
@@ -60,6 +61,7 @@ const TWEET_TEMPLATES = {
 // Document Elements
 const elements = {
     refreshBtn: document.getElementById('refresh-btn'),
+    exportCsvBtn: document.getElementById('export-csv-btn'),
     searchInput: document.getElementById('search-input'),
     clearSearch: document.getElementById('clear-search'),
     lastUpdated: document.getElementById('last-updated'),
@@ -115,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
     // Refresh button
     elements.refreshBtn.addEventListener('click', () => fetchNotes(true));
+    
+    // Export CSV button
+    elements.exportCsvBtn.addEventListener('click', exportCSV);
     
     // Category filters
     elements.categoryButtons.forEach(btn => {
@@ -379,13 +384,40 @@ function renderFeedList() {
             <div class="card-content">
                 ${note.html}
             </div>
-            <div class="card-footer">
+            <div class="card-footer" style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button class="btn-card-action btn-copy-action" title="Copy raw text to clipboard">
+                    ${ICONS.copy}
+                    <span>Copy</span>
+                </button>
                 <button class="btn-card-action btn-tweet-action">
                     ${ICONS.xLogo}
                     <span>Tweet update</span>
                 </button>
             </div>
         `;
+        
+        // Copy click handler
+        const copyBtn = card.querySelector('.btn-copy-action');
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(note.text)
+                .then(() => {
+                    showToast('Copied to clipboard!', 'success');
+                    const btnText = copyBtn.querySelector('span');
+                    const originalText = btnText.textContent;
+                    btnText.textContent = 'Copied!';
+                    copyBtn.style.borderColor = 'var(--color-feature)';
+                    copyBtn.style.color = 'var(--color-feature)';
+                    setTimeout(() => {
+                        btnText.textContent = originalText;
+                        copyBtn.style.borderColor = '';
+                        copyBtn.style.color = '';
+                    }, 1500);
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    showToast('Failed to copy to clipboard', 'error');
+                });
+        });
         
         // Tweet click handler
         card.querySelector('.btn-tweet-action').addEventListener('click', () => openTweetModal(note));
@@ -709,4 +741,59 @@ function showToast(message, type = 'success') {
         toast.style.animation = 'toastSlideIn 0.3s reverse cubic-bezier(0.16, 1, 0.3, 1) forwards';
         setTimeout(() => toast.remove(), 300);
     }, 4000);
+}
+
+// --- CSV Export System ---
+function exportCSV() {
+    if (state.filteredNotes.length === 0) {
+        showToast('No notes to export!', 'error');
+        return;
+    }
+    
+    // Escape CSV values helper
+    const escapeCSV = (str) => {
+        if (str === null || str === undefined) return '""';
+        return '"' + str.toString().replace(/"/g, '""') + '"';
+    };
+    
+    // CSV Header and rows
+    const headers = ['ID', 'Date', 'Type', 'Link', 'Text'];
+    const rows = state.filteredNotes.map(note => [
+        note.id,
+        note.date,
+        note.type,
+        note.link,
+        note.text
+    ]);
+    
+    // Build content string
+    const csvContent = [
+        headers.map(escapeCSV).join(','),
+        ...rows.map(row => row.map(escapeCSV).join(','))
+    ].join('\r\n');
+    
+    // Create Blob and trigger download
+    try {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        // Generate nice filename using date
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const categorySuffix = state.activeCategory !== 'all' ? `_${state.activeCategory}` : '';
+        const searchSuffix = state.searchQuery ? '_filtered' : '';
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", `bigquery_releases_${dateStr}${categorySuffix}${searchSuffix}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Exported ${state.filteredNotes.length} updates to CSV!`, 'success');
+    } catch (err) {
+        console.error('CSV Export failed:', err);
+        showToast('Export failed', 'error');
+    }
 }
