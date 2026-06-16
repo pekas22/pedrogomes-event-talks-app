@@ -20,6 +20,42 @@
     --x-blue: #1d9bf0;
     --x-blue-hover: #1a8cd8;
     
+    --x-bg: #000000;
+    --x-text: #ffffff;
+    --x-border: rgba(255, 255, 255, 0.1);
+}
+
+body.light-theme {
+    --bg-primary: #f3f4f6;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f9fafb;
+    --bg-elevated: #f3f4f6;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-hover: rgba(66, 133, 244, 0.5);
+    
+    --text-main: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+    
+    --primary: #1a73e8;
+    --primary-hover: #1557b0;
+    --primary-glow: rgba(26, 115, 232, 0.12);
+    
+    --accent: #0f1419;
+    --accent-glow: rgba(15, 20, 25, 0.05);
+    
+    --x-bg: #ffffff;
+    --x-text: #0f1419;
+    --x-border: rgba(0, 0, 0, 0.08);
+    
+    --bg-feature: rgba(52, 168, 83, 0.12);
+    --bg-changed: rgba(66, 133, 244, 0.12);
+    --bg-resolved: rgba(0, 191, 165, 0.12);
+    --bg-issue: rgba(251, 188, 5, 0.12);
+    --bg-deprecation: rgba(234, 67, 53, 0.12);
+    --bg-update: rgba(167, 139, 250, 0.12);
+}
+    
     /* Type Colors */
     --color-feature: #34a853;
     --bg-feature: rgba(52, 168, 83, 0.08);
@@ -851,7 +887,7 @@ body {
 .x-feed-sidebar {
     width: 360px;
     border-left: 1px solid var(--border-color);
-    background-color: #000000; /* Real X/Twitter theme */
+    background-color: var(--x-bg); /* Real X/Twitter theme */
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -859,7 +895,7 @@ body {
 
 .x-sidebar-header {
     padding: 20px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--x-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -869,11 +905,11 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #ffffff;
+    color: var(--x-text);
 }
 
 .x-logo {
-    color: #ffffff;
+    color: var(--x-text);
 }
 
 .x-header-title h3 {
@@ -906,7 +942,7 @@ body {
     font-size: 0.8rem;
     color: #71767b;
     padding: 16px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--x-border);
     background-color: rgba(255, 255, 255, 0.01);
 }
 
@@ -932,7 +968,7 @@ body {
 
 .x-empty-state h4 {
     font-size: 1rem;
-    color: #e7e9ea;
+    color: var(--x-text);
     font-weight: 700;
 }
 
@@ -945,11 +981,11 @@ body {
 /* X Post Card */
 .x-post {
     padding: 16px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--x-border);
     display: flex;
     gap: 12px;
     animation: slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    background-color: #000000;
+    background-color: var(--x-bg);
 }
 
 @keyframes slideDown {
@@ -990,7 +1026,7 @@ body {
 }
 
 .x-author-name {
-    color: #e7e9ea;
+    color: var(--x-text);
     font-weight: 700;
 }
 
@@ -1007,7 +1043,7 @@ body {
 }
 
 .x-post-text {
-    color: #e7e9ea;
+    color: var(--x-text);
     font-size: 0.9rem;
     line-height: 1.5;
     word-break: break-word;

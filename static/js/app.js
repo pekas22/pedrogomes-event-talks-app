@@ -62,6 +62,7 @@ const TWEET_TEMPLATES = {
 const elements = {
     refreshBtn: document.getElementById('refresh-btn'),
     exportCsvBtn: document.getElementById('export-csv-btn'),
+    themeToggleBtn: document.getElementById('theme-toggle-btn'),
     searchInput: document.getElementById('search-input'),
     clearSearch: document.getElementById('clear-search'),
     lastUpdated: document.getElementById('last-updated'),
@@ -108,6 +109,7 @@ const elements = {
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     loadLocalMockTweets();
     fetchNotes(false);
     setupEventListeners();
@@ -120,6 +122,9 @@ function setupEventListeners() {
     
     // Export CSV button
     elements.exportCsvBtn.addEventListener('click', exportCSV);
+    
+    // Theme Toggle button
+    elements.themeToggleBtn.addEventListener('click', toggleTheme);
     
     // Category filters
     elements.categoryButtons.forEach(btn => {
@@ -795,5 +800,37 @@ function exportCSV() {
     } catch (err) {
         console.error('CSV Export failed:', err);
         showToast('Export failed', 'error');
+    }
+}
+
+// --- Theme Toggle System ---
+function initTheme() {
+    const savedTheme = localStorage.getItem('bq_navigator_theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        document.querySelector('.theme-icon-sun').style.display = 'block';
+        document.querySelector('.theme-icon-moon').style.display = 'none';
+    } else {
+        document.body.classList.remove('light-theme');
+        document.querySelector('.theme-icon-sun').style.display = 'none';
+        document.querySelector('.theme-icon-moon').style.display = 'block';
+    }
+}
+
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('bq_navigator_theme', isLight ? 'light' : 'dark');
+    
+    const sunIcon = document.querySelector('.theme-icon-sun');
+    const moonIcon = document.querySelector('.theme-icon-moon');
+    
+    if (isLight) {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+        showToast('Modo Claro ativado', 'success');
+    } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        showToast('Modo Escuro ativado', 'success');
     }
 }
